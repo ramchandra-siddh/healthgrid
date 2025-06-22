@@ -19,9 +19,9 @@ app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 app.use("/api/user", userRouter);
 
-app.get("/", (req, res) => {
-  res.send("API WORKING");
-});
+// app.get("/", (req, res) => {
+//   res.send("API WORKING");
+// });
 
 // start server after DB and Cloudinary connection
 const startServer = async () => {
