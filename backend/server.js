@@ -25,6 +25,22 @@ app.get("/", (req, res) => {
   res.send("API WORKING");
 });
 
-app.listen(port, () => {
-  console.log("Server started", port);
-});
+// app.listen(port, () => {
+//   console.log("Server started", port);
+// });
+
+// start server after DB and Cloudinary connection
+const startServer = async () => {
+  try {
+    await connetDB();
+    await connectCloudnary(); // If it's not async, it’s still safe to use await
+
+    app.listen(port, () => {
+      console.log("Server started on port", port);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+};
+startServer();
