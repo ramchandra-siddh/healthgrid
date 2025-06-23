@@ -149,8 +149,11 @@ const MyProfile = () => {
                 onChange={(e) =>
                   setUserData((prev) => ({ ...prev, gender: e.target.value }))
                 }
-                value={userData.gender}
+                value={userData.gender || ""}
               >
+                <option value="Not Selected" disabled>
+                  Select Gender
+                </option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
