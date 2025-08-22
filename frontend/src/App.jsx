@@ -12,6 +12,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import VerifyEmail from "./pages/VerifyEmail";
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/my-profile" element={<MyProfile />}></Route>
         <Route path="/my-appointments" element={<MyAppointments />}></Route>
         <Route path="/appointment/:docId" element={<Appointment />}></Route>
+        <Route path="/verify" element={<VerifyEmail />} />
       </Routes>
       <Footer />
     </div>

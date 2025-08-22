@@ -123,11 +123,15 @@ const Doctors = () => {
           {filterDoc.map((doctor, index) => (
             <div
               onClick={() => navigate(`/appointment/${doctor._id}`)}
-              className="border border-green-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500"
+              className={`border ${
+                doctor.available ? "border-green-200" : "border-gray-200"
+              }  rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500`}
               key={index}
             >
               <img
-                className="bg-green-50"
+                className={`${
+                  doctor.available ? "bg-green-50" : "bg-gray-100"
+                } `}
                 src={doctor.image}
                 alt={doctor.name}
               />

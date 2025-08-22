@@ -24,9 +24,10 @@ const Login = () => {
           password,
           email,
         });
+
         if (data.success) {
-          localStorage.setItem("token", data.token);
-          setToken(data.token);
+          toast.success(data.message);
+          navigate("/verify", { state: { email, fromLogin: false } }); // Pass email to verify page
         } else {
           toast.error(data.message);
         }
@@ -35,14 +36,29 @@ const Login = () => {
           password,
           email,
         });
+
         if (data.success) {
-          localStorage.setItem("token", data.token);
-          setToken(data.token);
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+            toast.success(data.message);
+            setToken(data.token);
+          } else {
+            toast.error(error.message);
+          }
         } else {
-          toast.error(data.message);
+          if (
+            data.message ===
+            "Email not verified. Verification code sent to email."
+          ) {
+            toast(data.message); //            toast.error(data.message);
+            navigate("/verify", { state: { email, fromLogin: true } });
+          } else {
+            toast.error(data.message);
+          }
         }
       }
     } catch (error) {
+      console.log(error);
       toast.error(error.message);
     }
   };
@@ -55,7 +71,7 @@ const Login = () => {
 
   return (
     <form onSubmit={onSubmitHandler} className="min-h-[80vh] flex items-center">
-      <div className="flex flex-col gap-3 m-auto  items-start p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-zinc-600 text-sm shadow-lg">
+      <div className="flex flex-col gap-3 m-auto items-start p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-zinc-600 text-sm shadow-lg">
         <p className="text-2xl font-semibold">
           {state === "Sign Up" ? "Create Account" : "Login"}
         </p>

@@ -30,10 +30,16 @@ const RelatedDoctors = ({ docId, speciality }) => {
               navigate(`/appointment/${item._id}`);
               scrollTo(0, 0);
             }}
-            className="border border-green-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500"
+            className={` border ${
+              item.available ? "border-green-200" : "border-gray-200"
+            }  rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500`}
             key={index}
           >
-            <img className="bg-green-50" src={item.image} alt="" />
+            <img
+              className={`${item.available ? "bg-green-50" : "bg-gray-100"}`}
+              src={item.image}
+              alt=""
+            />
             <div className="p-4">
               <div
                 className={`flex items-center gap-2 text-sm text-center ${

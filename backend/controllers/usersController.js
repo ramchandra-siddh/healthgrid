@@ -6,10 +6,26 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import razorpayInstance from "../config/razorpay.js";
+import sendMail from "../config/mailer.js";
+
+async function sendVerificationCode(user) {
+  // generate new code
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  user.verificationCode = code;
+  user.verificationCodeExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  await user.save();
+
+  // send mail
+  await sendMail({
+    to: user.email,
+    subject: "Resend Verification Code - Verify your account",
+    html: `Your new Code is <b>${code}</b>. It expires in 10 minutes.`,
+  });
+}
 
 //API to register user
 
-const registerUSer = async (req, res) => {
+const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -17,28 +33,130 @@ const registerUSer = async (req, res) => {
     }
     //validating email format
     if (!validator.isEmail(email)) {
-      return res.json({ success: false, message: "enter a valid email" });
+      return res.json({ success: false, message: "Enter a valid email" });
     }
-    //validating strong password
+    //validating password length
     if (password.length < 8) {
-      return res.json({ success: false, message: "enter a strong password" });
+      return res.json({
+        success: false,
+        message: "Password must be at least 8 characters",
+      });
+    }
+
+    //check if user exists
+    const existing = await userModel.findOne({ email });
+    if (existing) {
+      return res.json({ success: false, message: "User already exists" });
     }
 
     //using strong password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    //generate Code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
     const userData = {
       name,
       email,
       password: hashedPassword,
+      verificationCode: code,
+      verificationCodeExpires: Date.now() + 10 * 60 * 1000,
     };
 
-    const newUser = new userModel(userData);
-    const user = await newUser.save();
+    const user = new userModel(userData);
+    await user.save();
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    res.json({ success: true, token });
+    await sendMail({
+      to: email,
+      subject: "Verify your account",
+      html: `<p>Your Verification Code is <b>${code}</b>. It expires in 10 minutes.</p>`,
+    });
+
+    res.json({
+      success: true,
+      message:
+        "User registered! Please check your email for the verification code.",
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+//verify user
+const verifyUser = async (req, res) => {
+  try {
+    const { email, verificationCode, fromLogin } = req.body;
+    if (!email || !verificationCode) {
+      return res.json({ success: false, message: "Email and OTP required" });
+    }
+
+    const user = await userModel.findOne({ email });
+    if (!user) return res.json({ success: false, message: "User not found" });
+
+    if (user.isVerified)
+      return res.json({ success: false, message: "Already verified" });
+
+    if (
+      user.verificationCode !== verificationCode ||
+      user.verificationCodeExpires < Date.now()
+    ) {
+      return res.json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    user.isVerified = true;
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
+    await user.save();
+
+    if (fromLogin) {
+      //Case:user came form login JWT
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      return res.json({
+        success: true,
+        message: "Email verified. Logged in successfully.",
+        token,
+      });
+    } else {
+      // ✅ Case: user came from register → no JWT
+      return res.json({
+        success: true,
+        message: "Email verified successfully. Please login now.",
+      });
+    }
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+//resend verification code
+const resendVerifyCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.json({ success: false, message: "Email required" });
+    }
+
+    // find user
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // already verified
+    if (user.isVerified) {
+      return res.json({ success: false, message: "User already verified" });
+    }
+
+    await sendVerificationCode(user);
+    res.json({
+      success: true,
+      message: "Verification Code resent successfully",
+    });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -49,6 +167,13 @@ const registerUSer = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing details" });
+    }
+
     const user = await userModel.findOne({ email });
 
     if (!user) {
@@ -56,12 +181,22 @@ const loginUser = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (isMatch) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-      res.json({ success: true, token });
-    } else {
-      res.json({ success: false, message: "Invalid credentials" });
+    if (!isMatch)
+      return res.json({ success: false, message: "Invalid email or password" });
+
+    if (!user.isVerified) {
+      await sendVerificationCode(user);
+
+      return res.json({
+        success: false,
+        message: "Email not verified. Verification code sent to email.",
+      });
     }
+    // if verified and password correct → login
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    res.json({ success: true, message: "Logged in successfully.", token });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
@@ -195,7 +330,7 @@ const cancelAppointment = async (req, res) => {
 
     //verify appointment user
     if (appointmentData.userId !== userId) {
-      return res.json({ success: false, message: "Unauthorized acton" });
+      return res.json({ success: false, message: "Unauthorized action" });
     }
     await appointmentModel.findByIdAndUpdate(appointmentData, {
       cancelled: true,
@@ -266,8 +401,11 @@ const verifyRazorpay = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
 export {
-  registerUSer,
+  registerUser,
+  verifyUser,
+  resendVerifyCode,
   loginUser,
   getProfile,
   updateProfile,
