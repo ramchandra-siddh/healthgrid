@@ -17,11 +17,19 @@ const DoctorsList = () => {
       <div className="w-full flex flex-wrap gap-4 pt-5 gap-y-6">
         {doctors.map((item, index) => (
           <div
-            className="border border-green-200 rounded-xl max-w-56 overflow-hidden cursor-pointer group"
+            // className="border border-green-200 rounded-xl max-w-56 overflow-hidden cursor-pointer group"
+            className={`border ${
+              item.available ? "border-green-200" : "border-gray-200"
+            }  rounded-xl max-w-56 overflow-hidden cursor-pointer group`}
             key={index}
           >
             <img
-              className="bg-green-50 group-hover:bg-primary transition-all duration-500"
+              // className="bg-green-50 group-hover:bg-primary transition-all duration-500"
+              className={`${
+                item.available
+                  ? "bg-green-50 group-hover:bg-primary"
+                  : " bg-gray-200 group-hover:bg-gray-400"
+              }   transition-all duration-500`}
               src={item.image}
               alt=""
             />

@@ -15,7 +15,7 @@ const Dashboard = () => {
     if (aToken) {
       getDashData();
     }
-  }, [aToken]);
+  }, [aToken, cancelAppointment]); //cancelAppointment added
 
   return (
     dashData && (

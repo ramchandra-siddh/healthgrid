@@ -7,7 +7,6 @@ const DoctorDashboard = () => {
   const {
     dToken,
     dashData,
-    setDashData,
     getDashData,
     completeAppointment,
     cancelAppointment,
@@ -18,7 +17,7 @@ const DoctorDashboard = () => {
     if (dToken) {
       getDashData();
     }
-  }, [dToken]);
+  }, [dToken, completeAppointment, cancelAppointment]); // completeAppointment, cancelAppointment added
   return (
     dashData && (
       <div className="m-5">
