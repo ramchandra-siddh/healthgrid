@@ -16,7 +16,7 @@ async function sendVerificationCode(user) {
   await user.save();
 
   // send mail
-  await sendMail({
+  sendMail({
     to: user.email,
     subject: "Resend Verification Code - Verify your account",
     html: `Your new Code is <b>${code}</b>. It expires in 10 minutes.`,
