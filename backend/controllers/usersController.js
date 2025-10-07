@@ -67,17 +67,17 @@ const registerUser = async (req, res) => {
     const user = new userModel(userData);
     await user.save();
 
-    await sendMail({
-      to: email,
-      subject: "Verify your account",
-      html: `<p>Your Verification Code is <b>${code}</b>. It expires in 10 minutes.</p>`,
-    });
-
     res.json({
       success: true,
       message:
         "User registered! Please check your email for the verification code.",
     });
+
+    sendMail({
+      to: email,
+      subject: "Verify your account",
+      html: `<p>Your Verification Code is <b>${code}</b>. It expires in 10 minutes.</p>`,
+    }).catch((err) => console.error("Email send error:", err));
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
