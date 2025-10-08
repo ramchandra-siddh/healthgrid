@@ -18,7 +18,7 @@ async function sendVerificationCode(user) {
   await sendMail({
     to: user.email,
     subject: "Resend Verification Code - Verify your account",
-    html: `Your new Code is <b>${code}</b>. It expires in 10 minutes.`,
+    html: `Hello ${user.name}, <br> Your new Code is <b>${code}</b>. It expires in 10 minutes.`,
   });
 }
 
@@ -69,7 +69,7 @@ const registerUser = async (req, res) => {
     await sendMail({
       to: email,
       subject: "Verify your account",
-      html: `<p>Your Verification Code is <b>${code}</b>. It expires in 10 minutes.</p>`,
+      html: `<p>Hello ${user.name},Your Verification Code is <b>${code}</b>. It expires in 10 minutes.</p>`,
     });
 
     res.json({
