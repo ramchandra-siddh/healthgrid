@@ -66,7 +66,7 @@ const registerUser = async (req, res) => {
     const user = new userModel(userData);
     await user.save();
 
-    sendMail({
+    await sendMail({
       to: email,
       subject: "Verify your account",
       html: `<p>Your Verification Code is <b>${code}</b>. It expires in 10 minutes.</p>`,
