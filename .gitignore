@@ -5,7 +5,6 @@
 
 # Ignore dependency folders
 **/node_modules/
-
 # Ignore build/output folders
 **/dist/
 **/build/

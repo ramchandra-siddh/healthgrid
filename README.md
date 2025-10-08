@@ -81,13 +81,9 @@ vite for fast builds
 express, mongoose, cors
 
 dotenv for env vars
-
 jsonwebtoken for auth
-
 multer, cloudinary for image uploads
-
 razorpay for payments
-
 bcrypt for hashing
 
 🙋‍♂️ Author
