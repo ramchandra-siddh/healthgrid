@@ -77,27 +77,6 @@ const registerUser = async (req, res) => {
       message:
         "User registered! Please check your email for the verification code.",
     });
-
-    // try {
-    //   await sendMail({
-    //     to: email,
-    //     subject: "Verify your account",
-    //     html: `<p>Your Verification Code is <b>${code}</b>. It expires in 10 minutes.</p>`,
-    //   });
-
-    //   res.json({
-    //     success: true,
-    //     message:
-    //       "User registered! Please check your email for the verification code.",
-    //   });
-    // } catch (err) {
-    //   console.error("Email send error:", err);
-    //   res.json({
-    //     success: false,
-    //     message:
-    //       "User registered but failed to send email. Try resending verification code.",
-    //   });
-    // }
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
